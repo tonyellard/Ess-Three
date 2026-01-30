@@ -11,11 +11,23 @@ A lightweight, API-compatible S3 emulator for local development. Run it in a con
 
 ## Supported Operations
 
+### Core Operations
 - `PutObject` - Upload objects
-- `GetObject` - Download objects
+- `GetObject` - Download objects with optional Range header support
 - `HeadObject` - Get object metadata
-- `ListObjectsV2` - List bucket contents
-- `DeleteObject` - Remove objects
+- `ListObjectsV1` - List bucket contents with marker-based pagination
+- `ListObjectsV2` - List bucket contents with continuation tokens
+- `DeleteObject` - Remove single objects
+- `DeleteObjects` - Batch delete multiple objects
+
+### Advanced Features
+- **Multipart Uploads** - Upload large files in parts
+  - `CreateMultipartUpload` - Initiate multipart upload
+  - `UploadPart` - Upload individual parts
+  - `CompleteMultipartUpload` - Finalize upload
+  - `AbortMultipartUpload` - Cancel upload
+- **Range Requests** - Download partial object content (HTTP 206 Partial Content)
+- **Pagination** - Both V1 (marker) and V2 (continuation tokens) formats
 
 ## Quick Start
 
@@ -208,12 +220,14 @@ python integration_test.py
 
 This is a development tool and has some limitations:
 
-- No authentication/authorization (all requests accepted)
-- No multipart upload support
-- No versioning
-- No bucket policies or ACLs
-- Simplified ETag generation
-- Single bucket per container instance
+- **No authentication/authorization** - All requests accepted (intended for local development)
+- **No versioning** - Each object has only one version
+- **No bucket policies or ACLs** - No fine-grained access control
+- **No S3 Select/Query** - Cannot query object contents
+- **No tagging** - Object tags not supported
+- **No request signing validation** - AWS Signature V4 not validated
+- **No S3 events** - No event notifications
+- **Simplified storage** - Single filesystem backend, not replicated
 
 ## License
 

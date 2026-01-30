@@ -41,10 +41,14 @@ essthree/
 - **Chi Router**: Lightweight HTTP router for routing S3 API requests
 - **S3 API Handlers**:
   - `PUT /{bucket}/{key}` - PutObject
-  - `GET /{bucket}/{key}` - GetObject
+  - `GET /{bucket}/{key}` - GetObject (supports Range header)
   - `HEAD /{bucket}/{key}` - HeadObject
-  - `DELETE /{bucket}/{key}` - DeleteObject
-  - `GET /{bucket}?prefix=...` - ListObjectsV2
+  - `DELETE /{bucket}/{key}` - DeleteObject or AbortMultipartUpload (with uploadId)
+  - `POST /{bucket}/{key}?uploads` - CreateMultipartUpload
+  - `PUT /{bucket}/{key}?uploadId=X&partNumber=N` - UploadPart
+  - `POST /{bucket}/{key}?uploadId=X` - CompleteMultipartUpload
+  - `GET /{bucket}` - ListObjectsV1/V2 (supports marker and continuation-token)
+  - `POST /{bucket}?delete` - DeleteObjects (batch delete)
 - **Response Format**: XML (S3-compatible)
 
 ### Containerization
@@ -54,15 +58,31 @@ essthree/
 
 ## Key Features Implemented
 
-✅ PutObject - Upload files with metadata
-✅ GetObject - Download files
-✅ HeadObject - Get object metadata
-✅ ListObjectsV2 - List bucket contents with prefix filtering
-✅ DeleteObject - Remove files
-✅ Custom Metadata - Support for x-amz-meta-* headers
-✅ Content-Type preservation
-✅ ETags for cache validation
-✅ Persistent storage via volumes
+✅ **Core S3 Operations**
+- PutObject - Upload files with metadata
+- GetObject - Download files
+- HeadObject - Get object metadata
+- ListObjectsV1 - List with marker-based pagination
+- ListObjectsV2 - List with continuation tokens
+- DeleteObject - Remove single files
+- DeleteObjects - Batch delete multiple objects
+
+✅ **Advanced Features**
+- Multipart Uploads (CreateMultipartUpload, UploadPart, CompleteMultipartUpload, AbortMultipartUpload)
+- Range Requests - Partial content downloads with HTTP 206 status
+- Pagination - Both V1 (marker) and V2 (continuation tokens)
+
+✅ **Storage & Metadata**
+- Custom Metadata - Support for x-amz-meta-* headers
+- Content-Type preservation
+- ETags for cache validation (MD5 for multipart uploads)
+- Persistent storage via volumes
+
+✅ **Architecture**
+- Chi Router for HTTP routing
+- Filesystem-based storage
+- Docker containerization with multi-stage builds
+- Comprehensive integration tests
 
 ## Testing Strategy
 
@@ -86,18 +106,25 @@ essthree/
 ## Limitations & Future Enhancements
 
 ### Current Limitations
-- No authentication/authorization (accepts all requests)
-- No multipart upload support
-- No bucket versioning
-- No bucket policies or ACLs
-- Simplified ETag generation (not MD5-based)
-- Single bucket concept (path-based)
+- **No authentication/authorization** - Accepts all requests (intended for local development)
+- **No versioning** - Objects have single version only
+- **No bucket policies or ACLs** - No access control mechanisms
+- **No S3 Select/Query** - Cannot query object contents
+- **No tagging** - Object tags not supported
+- **No request signing validation** - AWS Signature V4 not validated
+- **No S3 events** - No event notifications/webhooks
+- **No bucket operations** - CreateBucket/DeleteBucket not implemented
+- **Simplified storage** - Single filesystem backend, no replication
 
 ### Potential Enhancements
-1. **Authentication**: Add AWS Signature V4 validation
-2. **Multipart Uploads**: Support large file uploads
-3. **Versioning**: Object version tracking
-4. **Bucket Management**: CreateBucket, DeleteBucket operations
+1. **S3 Select/Query** - Query objects directly (JSON, Parquet, CSV)
+2. **Authentication** - Add AWS Signature V4 validation
+3. **Versioning** - Object version tracking and recovery
+4. **Bucket Management** - CreateBucket, DeleteBucket, ListBuckets
+5. **Tagging** - Object tag support
+6. **Lifecycle Policies** - Automatic object expiration
+7. **Replication** - Cross-region or local replication
+8. **Event Notifications** - S3 event streaming
 5. **Presigned URLs**: Temporary access URLs
 6. **CORS Support**: Cross-origin request headers
 7. **Range Requests**: Partial object downloads

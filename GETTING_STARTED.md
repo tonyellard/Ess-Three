@@ -1,11 +1,21 @@
 # Getting Started with ess-three
 
-This guide will help you get started with ess-three, a local S3 emulator for development.
+This guide will help you get started with ess-three, a local S3 emulator for development with AWS SDK compatibility.
+
+## Features
+
+- ✅ Core S3 operations (PUT, GET, DELETE, LIST)
+- ✅ Multipart uploads (large files)
+- ✅ Range requests (partial content)
+- ✅ Batch delete operations
+- ✅ ListObjects V1 & V2 with pagination
+- ✅ Custom metadata and object attributes
+- ✅ Docker containerization with persistent volumes
 
 ## Prerequisites
 
 - Docker and Docker Compose (recommended)
-- OR Go 1.22+ for local development
+- OR Go 1.23+ for local development
 
 ## Quick Start (Docker - Recommended)
 
@@ -172,6 +182,95 @@ func main() {
         Body:   file,
     })
 }
+```
+
+## Advanced Features
+
+### Multipart Uploads
+
+Upload large files in parts:
+
+```python
+import boto3
+
+s3 = boto3.client(
+    's3',
+    endpoint_url='http://localhost:9000',
+    aws_access_key_id='test',
+    aws_secret_access_key='test',
+    region_name='us-east-1'
+)
+
+# Initiate upload
+response = s3.create_multipart_upload(Bucket='mybucket', Key='large-file.bin')
+upload_id = response['UploadId']
+
+# Upload parts
+with open('large-file.bin', 'rb') as f:
+    parts = []
+    for i in range(1, 4):
+        part_data = f.read(5 * 1024 * 1024)  # 5MB chunks
+        response = s3.upload_part(
+            Bucket='mybucket',
+            Key='large-file.bin',
+            PartNumber=i,
+            UploadId=upload_id,
+            Body=part_data
+        )
+        parts.append({'ETag': response['ETag'], 'PartNumber': i})
+
+# Complete upload
+s3.complete_multipart_upload(
+    Bucket='mybucket',
+    Key='large-file.bin',
+    UploadId=upload_id,
+    MultipartUpload={'Parts': parts}
+)
+```
+
+### Range Requests
+
+Download partial object content:
+
+```python
+# Get first 100 bytes
+response = s3.get_object(
+    Bucket='mybucket',
+    Key='myfile.txt',
+    Range='bytes=0-99'
+)
+partial_content = response['Body'].read()
+```
+
+### Batch Delete
+
+Delete multiple objects in one request:
+
+```python
+response = s3.delete_objects(
+    Bucket='mybucket',
+    Delete={
+        'Objects': [
+            {'Key': 'file1.txt'},
+            {'Key': 'file2.txt'},
+            {'Key': 'file3.txt'}
+        ]
+    }
+)
+```
+
+### Pagination
+
+List objects with pagination:
+
+```python
+# ListObjects V2 with continuation tokens
+paginator = s3.get_paginator('list_objects_v2')
+pages = paginator.paginate(Bucket='mybucket')
+
+for page in pages:
+    for obj in page.get('Contents', []):
+        print(obj['Key'])
 ```
 
 ## Integration Tests
