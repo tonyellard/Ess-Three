@@ -31,13 +31,15 @@ A lightweight, API-compatible S3 emulator for local development. Run it in a con
 
 ## Quick Start
 
-### Using Docker Compose
+### Using Docker Compose (Recommended)
 
 ```bash
 docker-compose up -d
 ```
 
 The service will be available at `http://localhost:9000`
+
+**Note for Windows/WSL users**: If the build fails with an "installsuffix" error, see the [Troubleshooting](#troubleshooting) section below.
 
 ### Using Docker
 
@@ -215,6 +217,37 @@ go test ./...
 cd test
 python integration_test.py
 ```
+
+## Troubleshooting
+
+### Docker Build Fails on Windows/WSL: "installsuffix" Error
+
+If you see an error like:
+```
+ERROR: Failed to build: failed to solve: process "/bin/sh -c CGO_ENABLED=0 GOOS=linux go build..." did not complete successfully
+```
+
+This is usually caused by Git converting line endings on Windows. Fix it:
+
+```bash
+# Option 1: Clone with correct settings
+git config --global core.autocrlf false
+git clone https://github.com/tonyellard/Ess-Three.git
+cd Ess-Three
+docker compose build --no-cache
+
+# Option 2: Fix existing clone
+git checkout --quiet --force --recursive
+docker compose build --no-cache
+```
+
+The `.gitattributes` file ensures correct line endings across platforms.
+
+### Other Issues
+
+- **Port 9000 in use**: Edit `docker-compose.yml` and change the port mapping
+- **Permission denied on `/data`**: Run `chmod 755 ./data` (Linux/Mac)
+- **Objects disappear after restart**: Ensure Docker volumes are configured in `docker-compose.yml`
 
 ## Limitations
 

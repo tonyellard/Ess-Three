@@ -290,6 +290,26 @@ python test/integration_test.py
 
 ## Troubleshooting
 
+### Build Fails on Windows/WSL with "installsuffix" Error
+
+This is usually caused by Git line ending conversion. Fix it by:
+
+```bash
+# Clone fresh with proper settings
+git config --global core.autocrlf false
+git clone https://github.com/tonyellard/Ess-Three.git
+cd Ess-Three
+docker compose build --no-cache
+```
+
+Or if you already cloned it:
+
+```bash
+# Reset line endings
+git checkout --quiet --force --recursive
+docker compose build --no-cache
+```
+
 ### Port Already in Use
 
 If port 9000 is already in use, edit `docker-compose.yml`:
