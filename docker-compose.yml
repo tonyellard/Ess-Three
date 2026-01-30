@@ -1,0 +1,13 @@
+version: '3.8'
+
+services:
+  ess-three:
+    build: .
+    container_name: ess-three
+    ports:
+      - "9000:9000"
+    volumes:
+      - ./data:/data
+    environment:
+      - DATA_DIR=/data
+    restart: unless-stopped

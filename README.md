@@ -1,0 +1,220 @@
+# ess-three - Local S3 Emulator
+
+A lightweight, API-compatible S3 emulator for local development. Run it in a container and connect your applications using the AWS SDK with a custom endpoint.
+
+## Features
+
+- **S3 API Compatible**: Works with AWS SDKs and CLI
+- **Persistent Storage**: File-based storage with Docker volumes
+- **Lightweight**: Minimal resource footprint
+- **Easy Setup**: Single container deployment
+
+## Supported Operations
+
+- `PutObject` - Upload objects
+- `GetObject` - Download objects
+- `HeadObject` - Get object metadata
+- `ListObjectsV2` - List bucket contents
+- `DeleteObject` - Remove objects
+
+## Quick Start
+
+### Using Docker Compose
+
+```bash
+docker-compose up -d
+```
+
+The service will be available at `http://localhost:9000`
+
+### Using Docker
+
+```bash
+# Build
+docker build -t ess-three .
+
+# Run
+docker run -d -p 9000:9000 -v $(pwd)/data:/data ess-three
+```
+
+### Local Development
+
+```bash
+# Install dependencies
+go mod download
+
+# Run
+go run cmd/ess-three/main.go --port=9000 --data-dir=./data
+```
+
+## Usage Examples
+
+### AWS CLI
+
+```bash
+# Configure AWS CLI (credentials can be dummy values for local testing)
+aws configure set aws_access_key_id test
+aws configure set aws_secret_access_key test
+aws configure set region us-east-1
+
+# Upload a file
+aws s3 cp file.txt s3://mybucket/file.txt --endpoint-url=http://localhost:9000
+
+# Download a file
+aws s3 cp s3://mybucket/file.txt downloaded.txt --endpoint-url=http://localhost:9000
+
+# List objects
+aws s3 ls s3://mybucket/ --endpoint-url=http://localhost:9000
+
+# Delete a file
+aws s3 rm s3://mybucket/file.txt --endpoint-url=http://localhost:9000
+```
+
+### Python (boto3)
+
+```python
+import boto3
+
+# Create S3 client with custom endpoint
+s3 = boto3.client(
+    's3',
+    endpoint_url='http://localhost:9000',
+    aws_access_key_id='test',
+    aws_secret_access_key='test',
+    region_name='us-east-1'
+)
+
+# Upload a file
+s3.put_object(Bucket='mybucket', Key='test.txt', Body=b'Hello World')
+
+# Download a file
+response = s3.get_object(Bucket='mybucket', Key='test.txt')
+content = response['Body'].read()
+
+# List objects
+response = s3.list_objects_v2(Bucket='mybucket')
+for obj in response.get('Contents', []):
+    print(obj['Key'])
+```
+
+### Go (AWS SDK v2)
+
+```go
+package main
+
+import (
+    "context"
+    "github.com/aws/aws-sdk-go-v2/config"
+    "github.com/aws/aws-sdk-go-v2/service/s3"
+    "strings"
+)
+
+func main() {
+    cfg, _ := config.LoadDefaultConfig(context.TODO(),
+        config.WithRegion("us-east-1"),
+    )
+    
+    client := s3.NewFromConfig(cfg, func(o *s3.Options) {
+        o.BaseEndpoint = aws.String("http://localhost:9000")
+        o.UsePathStyle = true
+    })
+    
+    // Upload
+    client.PutObject(context.TODO(), &s3.PutObjectInput{
+        Bucket: aws.String("mybucket"),
+        Key:    aws.String("test.txt"),
+        Body:   strings.NewReader("Hello World"),
+    })
+}
+```
+
+### Node.js (AWS SDK v3)
+
+```javascript
+const { S3Client, PutObjectCommand, GetObjectCommand } = require("@aws-sdk/client-s3");
+
+const client = new S3Client({
+    endpoint: "http://localhost:9000",
+    region: "us-east-1",
+    credentials: {
+        accessKeyId: "test",
+        secretAccessKey: "test"
+    },
+    forcePathStyle: true
+});
+
+// Upload
+await client.send(new PutObjectCommand({
+    Bucket: "mybucket",
+    Key: "test.txt",
+    Body: "Hello World"
+}));
+
+// Download
+const response = await client.send(new GetObjectCommand({
+    Bucket: "mybucket",
+    Key: "test.txt"
+}));
+```
+
+## Configuration
+
+### Environment Variables
+
+- `PORT` - Server port (default: 9000)
+- `DATA_DIR` - Data storage directory (default: /data)
+
+### Command Line Flags
+
+```bash
+./ess-three --port=9000 --data-dir=/data
+```
+
+## Data Storage
+
+Objects are stored in the filesystem with the following structure:
+
+```
+/data/
+  └── mybucket/
+      ├── objects/
+      │   └── file.txt
+      └── metadata/
+          └── file.txt.json
+```
+
+Metadata includes:
+- Object key
+- Size
+- ETag
+- Content-Type
+- Last modified timestamp
+- Custom metadata (x-amz-meta-* headers)
+
+## Testing
+
+See the `test/` directory for integration tests.
+
+```bash
+# Run tests
+go test ./...
+
+# Run integration tests (requires running server)
+cd test
+python integration_test.py
+```
+
+## Limitations
+
+This is a development tool and has some limitations:
+
+- No authentication/authorization (all requests accepted)
+- No multipart upload support
+- No versioning
+- No bucket policies or ACLs
+- Simplified ETag generation
+- Single bucket per container instance
+
+## License
+
+MIT
