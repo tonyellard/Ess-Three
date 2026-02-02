@@ -105,10 +105,10 @@ func (s *Server) handleListObjects(w http.ResponseWriter, r *http.Request) {
 	bucket := chi.URLParam(r, "bucket")
 	prefix := r.URL.Query().Get("prefix")
 	maxKeysStr := r.URL.Query().Get("max-keys")
-	
+
 	// Check if this is V2 or V1
 	listType := r.URL.Query().Get("list-type")
-	
+
 	maxKeys := 1000
 	if maxKeysStr != "" {
 		if mk, err := strconv.Atoi(maxKeysStr); err == nil {
@@ -185,7 +185,7 @@ func (s *Server) handleGetObject(w http.ResponseWriter, r *http.Request) {
 
 	// Check for Range header
 	rangeHeader := r.Header.Get("Range")
-	
+
 	if rangeHeader != "" {
 		// Parse range header
 		rangeStart, rangeEnd, err := parseRangeHeader(rangeHeader)
@@ -212,6 +212,8 @@ func (s *Server) handleGetObject(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("ETag", metadata.ETag)
 		w.Header().Set("Last-Modified", metadata.LastModified.Format(http.TimeFormat))
 		w.Header().Set("Accept-Ranges", "bytes")
+		w.Header().Set("Server", "ess-three")
+		w.Header().Set("Date", time.Now().UTC().Format(http.TimeFormat))
 
 		// Set custom metadata headers
 		for k, v := range metadata.Metadata {
@@ -239,6 +241,9 @@ func (s *Server) handleGetObject(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("ETag", metadata.ETag)
 		w.Header().Set("Last-Modified", metadata.LastModified.Format(http.TimeFormat))
 		w.Header().Set("Accept-Ranges", "bytes")
+		w.Header().Set("Server", "ess-three")
+		w.Header().Set("Date", time.Now().UTC().Format(http.TimeFormat))
+		w.Header().Set("Connection", "keep-alive")
 
 		// Set custom metadata headers
 		for k, v := range metadata.Metadata {
@@ -259,7 +264,7 @@ func parseRangeHeader(rangeHeader string) (int64, int64, error) {
 
 	rangeSpec := strings.TrimPrefix(rangeHeader, "bytes=")
 	parts := strings.Split(rangeSpec, "-")
-	
+
 	if len(parts) != 2 {
 		return 0, 0, fmt.Errorf("invalid range format")
 	}
@@ -313,9 +318,13 @@ func (s *Server) handlePutObject(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Set response headers for S3 compatibility
 	w.Header().Set("ETag", objMetadata.ETag)
-	w.Header().Set("Content-Length", "0")
 	w.Header().Set("x-amz-version-id", "null")
+	w.Header().Set("Server", "ess-three")
+	w.Header().Set("Date", time.Now().UTC().Format(http.TimeFormat))
+	w.Header().Set("Content-Length", "0")
+	w.Header().Set("Connection", "keep-alive")
 	w.WriteHeader(http.StatusOK)
 }
 
@@ -340,6 +349,9 @@ func (s *Server) handleHeadObject(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("ETag", metadata.ETag)
 	w.Header().Set("Last-Modified", metadata.LastModified.Format(http.TimeFormat))
 	w.Header().Set("Accept-Ranges", "bytes")
+	w.Header().Set("Server", "ess-three")
+	w.Header().Set("Date", time.Now().UTC().Format(http.TimeFormat))
+	w.Header().Set("x-amz-version-id", "null")
 
 	// Set custom metadata headers
 	for k, v := range metadata.Metadata {
@@ -536,6 +548,8 @@ func (s *Server) sendError(w http.ResponseWriter, r *http.Request, code, message
 	}
 
 	w.Header().Set("Content-Type", "application/xml")
+	w.Header().Set("Server", "ess-three")
+	w.Header().Set("Date", time.Now().UTC().Format(http.TimeFormat))
 	w.WriteHeader(statusCode)
 	xml.NewEncoder(w).Encode(errorResp)
 }
