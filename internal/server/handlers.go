@@ -221,7 +221,8 @@ func (s *Server) handleGetObject(w http.ResponseWriter, r *http.Request) {
 		}
 
 		w.WriteHeader(http.StatusPartialContent)
-		io.Copy(w, reader)
+		// Use io.CopyN to respect Content-Length and prevent chunked encoding
+		io.CopyN(w, reader, end-start+1)
 	} else {
 		// Normal GET (full object)
 		reader, metadata, err := s.storage.GetObject(bucket, key)
@@ -251,7 +252,8 @@ func (s *Server) handleGetObject(w http.ResponseWriter, r *http.Request) {
 		}
 
 		w.WriteHeader(http.StatusOK)
-		io.Copy(w, reader)
+		// Use io.CopyN to respect Content-Length and prevent chunked encoding
+		io.CopyN(w, reader, metadata.Size)
 	}
 }
 

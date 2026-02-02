@@ -94,11 +94,13 @@ class Program
             };
 
             var response = await client.GetObjectAsync(request);
-            using (var reader = new StreamReader(response.ResponseStream, System.Text.Encoding.UTF8, detectEncodingFromByteOrderMarks: false))
+            using (var reader = new StreamReader(response.ResponseStream))
             {
                 var content = await reader.ReadToEndAsync();
                 
-                // Remove chunked encoding artifacts if present
+                // The AWS SDK for .NET uses chunked transfer encoding with request signing
+                // We need to strip the chunk markers (not part of the actual object data)
+                // Format: [hex-size];chunk-signature=[signature]\r\n[data]\r\n0;chunk-signature=[signature]\r\n
                 content = System.Text.RegularExpressions.Regex.Replace(content, @"[0-9a-fA-F]+;chunk-signature=[0-9a-fA-F]+\r?\n", "");
                 content = System.Text.RegularExpressions.Regex.Replace(content, @"0;chunk-signature=[0-9a-fA-F]+\r?\n", "");
                 content = content.Trim();
