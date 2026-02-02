@@ -314,6 +314,8 @@ func (s *Server) handlePutObject(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("ETag", objMetadata.ETag)
+	w.Header().Set("Content-Length", "0")
+	w.Header().Set("x-amz-version-id", "null")
 	w.WriteHeader(http.StatusOK)
 }
 
