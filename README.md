@@ -232,7 +232,7 @@ This is usually caused by Git converting line endings on Windows. Fix it:
 ```bash
 # Option 1: Clone with correct settings
 git config --global core.autocrlf false
-git clone https://github.com/{github-username}/Ess-Three.git
+git clone https://github.com/tonyellard/Ess-Three.git
 cd Ess-Three
 docker compose build --no-cache
 

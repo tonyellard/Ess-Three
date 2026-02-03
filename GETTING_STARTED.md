@@ -297,7 +297,7 @@ This is usually caused by Git line ending conversion. Fix it by:
 ```bash
 # Clone fresh with proper settings
 git config --global core.autocrlf false
-git clone https://github.com/{github-username}/Ess-Three.git
+git clone https://github.com/tonyellard/Ess-Three.git
 cd Ess-Three
 docker compose build --no-cache
 ```
