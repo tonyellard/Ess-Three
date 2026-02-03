@@ -264,4 +264,9 @@ This is a development tool and has some limitations:
 
 ## License
 
-MIT
+Licensed under the Apache License, Version 2.0. See `LICENSE`.
+
+## Trademark notice
+
+Not affiliated with, endorsed by, or sponsored by Amazon Web Services (AWS).
+Amazon S3 and Amazon CloudFront are trademarks of Amazon.com, Inc. or its affiliates.
