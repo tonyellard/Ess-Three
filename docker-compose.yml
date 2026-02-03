@@ -10,4 +10,12 @@ services:
       - ./data:/data
     environment:
       - DATA_DIR=/data
+      - TZ=UTC
     restart: unless-stopped
+    networks:
+      - shared-network
+
+networks:
+  shared-network:
+    driver: bridge
+    name: shared-network
