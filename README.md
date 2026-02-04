@@ -262,6 +262,12 @@ This is a development tool and has some limitations:
 - **No S3 events** - No event notifications
 - **Simplified storage** - Single filesystem backend, not replicated
 
+## Support
+
+**Getting Help:** [TBD - Issue tracker and discussion board to be added]
+
+**Reporting Issues:** [TBD - Contribution guidelines to be added]
+
 ## License
 
 Licensed under the Apache License, Version 2.0. See `LICENSE`.
