@@ -23,6 +23,9 @@ WORKDIR /root/
 # Copy the binary from builder
 COPY --from=builder /build/ess-three .
 
+# Copy license files
+COPY --from=builder /build/LICENSE /build/NOTICE ./
+
 # Create data directory
 RUN mkdir -p /data
 
