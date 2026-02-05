@@ -41,6 +41,22 @@ The service will be available at `http://localhost:9000`
 
 **Note for Windows/WSL users**: If the build fails with an "installsuffix" error, see the [Troubleshooting](#troubleshooting) section below.
 
+### Shared Networking with Other Services
+
+Ess-Three, Ess-Queue-Ess, and Cloudfauxnt share a Docker bridge network for local development. This allows services to communicate with each other using container names.
+
+First, create the shared network (once):
+
+```bash
+docker network create shared-network
+```
+
+Then start services from their respective directories. Each will automatically connect to the shared network. From inside a container, you can reach:
+
+- **ess-three**: `http://ess-three:9000`
+- **ess-queue-ess**: `http://ess-queue-ess:9324`
+- **cloudfauxnt**: `http://cloudfauxnt:8080`
+
 ### Using Docker
 
 ```bash
