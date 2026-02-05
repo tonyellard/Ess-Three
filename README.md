@@ -55,7 +55,7 @@ Then start services from their respective directories. Each will automatically c
 
 - **ess-three**: `http://ess-three:9000`
 - **ess-queue-ess**: `http://ess-queue-ess:9324`
-- **cloudfauxnt**: `http://cloudfauxnt:8080`
+- **cloudfauxnt**: `http://cloudfauxnt:9001`
 
 ### Using Docker
 
